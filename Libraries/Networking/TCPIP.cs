@@ -15,12 +15,20 @@ namespace RoverTCPIPLibrary
         public int Port { get; set; }
         public bool ConnectForOneTime { get; set; } = false;
         public int RefreshRate { get; set; } = 10;
-        public bool Connected { get; set; }
+        public bool WriterCleanUpEnabled { get; set; } = false;
+        public bool Connected
+        {
+            get
+            {
+                return _Client.Connected;
+            }
+        }
 
         public RoverConnection(string IPAddress, int Port)
         {
             this.Port = Port;
             this.IPAddress = IPAddress;
+            
         }
 
         private TcpClient _Client = new TcpClient();
@@ -45,7 +53,7 @@ namespace RoverTCPIPLibrary
                     // Break the loop if connection is succesfull
                     while (!this.Connected)
                     {
-                        this.Connected = ConnectToServer();
+                        ConnectToServer();
                         System.Threading.Thread.Sleep(1000 / RefreshRate);
                     }
                     return true;
@@ -67,17 +75,31 @@ namespace RoverTCPIPLibrary
 
         private bool Send(string msg)
         {
-            StreamWriter Stream = new StreamWriter(_Client.GetStream());
-            Stream.WriteLine(msg);
-            Stream.Flush();
-            Stream.Close();
-            return _Client.Connected;
+            if (_Client.Connected)
+            {
+                StreamWriter Stream = new StreamWriter(_Client.GetStream());
+                Stream.WriteLine(msg);
+                Stream.Flush();
+                if (WriterCleanUpEnabled) Stream.Close();
+                return _Client.Connected;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private bool ConnectToServer()
         {
-            _Client.Connect(IPAddress, Port);
-            return _Client.Connected;
+            try
+            {
+                _Client.Connect(IPAddress, Port);
+                return _Client.Connected;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
 
         private bool DisconnectFromServer()
