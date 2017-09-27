@@ -5,10 +5,15 @@ namespace RoverLogger
 {
     public class RoverLogger
     {
+        // Path of the log file to be saved. (Include the file format Ex: '.txt')
         public string LogFilePath { get; set; } = "";
         public System.Windows.Forms.RichTextBox TextBox { get; set; }
+        public bool LogToConsole { get; set; } = true;
+        public bool LogToTextBox { get; set; } = false;
+        public bool LogToFile { get; set; } = false;
+        
 
-        public void Log(string LogMessage, bool LogToFile = false, bool LogToConsole = true, bool LogToTextBox = false)
+        public void Log(string LogMessage)
         {
             if (LogToConsole) System.Console.WriteLine(LogMessage);
             if (LogToTextBox && TextBox != null) TextBox.Text += LogMessage + "\n";
@@ -21,5 +26,4 @@ namespace RoverLogger
             }
         }
     }
-    
 }
